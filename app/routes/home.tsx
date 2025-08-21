@@ -130,7 +130,7 @@ export default function MarkdownConverter() {
 
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-foreground mb-2">
-          Markdown to Slack mrkdwn Converter
+          Convert Markdown to Slack mrkdwn
         </h1>
         <p className="text-muted-foreground">
           Paste your regular markdown on the left and get Slack-formatted text
