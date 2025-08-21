@@ -17,8 +17,11 @@ import { xcodeDark, xcodeLight } from "@uiw/codemirror-theme-xcode";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Markdown Slack" },
+    {
+      name: "description",
+      content: "Convert regular markdown to Slack mrkdwn format",
+    },
   ];
 }
 
