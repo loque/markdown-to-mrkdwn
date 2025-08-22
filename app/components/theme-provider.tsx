@@ -31,15 +31,16 @@ function getSystemTheme(): Theme {
 
 export function ThemeProvider({
   children,
-  defaultThemePreference: defaultTheme = "system",
+  defaultThemePreference = "system",
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
   // On initial load, read the preferred theme from localStorage
   const [themePreference, setThemePreference] = useState<ThemePreference>(
-    () => (localStorage.getItem(storageKey) as ThemePreference) || defaultTheme,
+    () =>
+      (localStorage.getItem(storageKey) as ThemePreference) ||
+      defaultThemePreference,
   );
-  console.debug(">>> themePreference", themePreference);
 
   // On initial load, determine the theme based on the preference
   const [theme, setTheme] = useState<Theme>((): Theme => {
@@ -47,7 +48,6 @@ export function ThemeProvider({
 
     return getSystemTheme();
   });
-  console.debug(">>> theme", theme);
 
   // When the theme preference is system, listen for changes in the system
   // preference and update the theme accordingly
@@ -59,7 +59,6 @@ export function ThemeProvider({
 
     function mediaChangeListener(e: MediaQueryListEvent) {
       const theme: Theme = e.matches ? "dark" : "light";
-      console.debug(">>> system preference", theme);
       setTheme(theme);
     }
 
@@ -79,8 +78,6 @@ export function ThemeProvider({
   // When the theme changes, set the document's root element theme class
   useEffect(() => {
     const root = window.document.documentElement;
-    console.debug(">>> root", root);
-    console.debug(">>> theme changed to", theme);
     root.classList.remove("light", "dark");
     root.classList.add(theme);
   }, [theme]);
