@@ -6,14 +6,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSection,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { Copy, Check, Sun, Moon, Monitor } from "lucide-react";
+import { Copy, Check, Sun, Moon, Monitor, Radio, Menu } from "lucide-react";
 import { useTheme } from "~/components/theme-provider";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { xcodeDark, xcodeLight } from "@uiw/codemirror-theme-xcode";
+import { RadioCardGroup, RadioCardItem } from "~/components/ui/radio-card";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -78,7 +80,7 @@ export default function MarkdownConverter() {
     convertToSlackMrkdwn(placeholder),
   );
   const [copied, setCopied] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, themePreference, setThemePreference } = useTheme();
 
   const editorTheme = theme === "dark" ? xcodeDark : xcodeLight;
 
@@ -105,25 +107,31 @@ export default function MarkdownConverter() {
       <div className="absolute top-4 right-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Menu />
+              <span className="sr-only">Toggle Menu</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme("light")}>
-              <Sun className="mr-2 h-4 w-4" />
-              Light
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("dark")}>
-              <Moon className="mr-2 h-4 w-4" />
-              Dark
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("system")}>
-              <Monitor className="mr-2 h-4 w-4" />
-              System
-            </DropdownMenuItem>
+            <DropdownMenuSection>
+              <RadioCardGroup
+                value={themePreference}
+                onValueChange={setThemePreference}
+              >
+                <RadioCardItem value="light">
+                  <Sun />
+                  Light
+                </RadioCardItem>
+                <RadioCardItem value="dark">
+                  <Moon />
+                  Dark
+                </RadioCardItem>
+                <RadioCardItem value="system">
+                  <Monitor />
+                  System
+                </RadioCardItem>
+              </RadioCardGroup>
+            </DropdownMenuSection>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -169,11 +177,7 @@ export default function MarkdownConverter() {
               Slack Markdown
             </CardTitle>
             <Button onClick={copyToClipboard}>
-              {copied ? (
-                <Check className="mr-2 h-4 w-4" />
-              ) : (
-                <Copy className="mr-2 h-4 w-4" />
-              )}
+              {copied ? <Check /> : <Copy />}
               {copied ? "Copied!" : "Copy"}
             </Button>
           </CardHeader>
