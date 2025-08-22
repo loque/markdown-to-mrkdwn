@@ -9,8 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
-  Clipboard,
-  Check,
   Sun,
   Moon,
   Monitor,
@@ -20,19 +18,12 @@ import {
   Square,
 } from "lucide-react";
 import { useTheme } from "~/components/theme-provider";
-import CodeMirror, { EditorView } from "@uiw/react-codemirror";
-import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import { languages } from "@codemirror/language-data";
-import { xcodeDark, xcodeLight } from "@uiw/codemirror-theme-xcode";
 import { RadioCardGroup, RadioCardItem } from "~/components/ui/radio-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
 import { markdownToMrkdwn } from "./markdown-to-mrkdwn";
 import { BsMarkdown, BsSlack } from "react-icons/bs";
+import { Editor, EditorCard, EditorHeader } from "~/components/editor";
+import { CopyButton } from "~/components/copy-button";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -56,87 +47,38 @@ Example:
 type Layout = "vertical" | "horizontal" | "tabbed";
 
 export default function MarkdownConverter() {
+  const [originalText, setOriginalText] = useState(placeholder);
   const [convertedText, setConvertedText] = useState(
-    markdownToMrkdwn(placeholder),
+    markdownToMrkdwn(originalText),
   );
-  const [copied, setCopied] = useState(false);
-  const { theme, themePreference, setThemePreference } = useTheme();
+  const { themePreference, setThemePreference } = useTheme();
   const [layout, setLayout] = useState<Layout>("horizontal");
 
-  const editorTheme = theme === "dark" ? xcodeDark : xcodeLight;
-
-  function onOriginalEditorChange(text: string) {
+  function onOriginalTextChange(text: string) {
+    setOriginalText(text);
     setConvertedText(markdownToMrkdwn(text));
   }
 
-  async function copyToClipboard() {
-    try {
-      await navigator.clipboard.writeText(convertedText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-    }
-  }
-
   const originalEditor = (
-    <Card className="flex flex-col">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium flex items-center gap-2">
-          <BsMarkdown />
-          Original
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1">
-        <CodeMirror
-          theme={editorTheme}
-          extensions={[
-            markdown({
-              base: markdownLanguage,
-              codeLanguages: languages,
-            }),
-            EditorView.lineWrapping,
-          ]}
-          placeholder={placeholder}
-          onChange={onOriginalEditorChange}
-        />
-      </CardContent>
-    </Card>
+    <EditorCard>
+      <EditorHeader>
+        <BsMarkdown />
+        Original
+      </EditorHeader>
+      <Editor value={originalText} onChange={onOriginalTextChange} />
+    </EditorCard>
   );
 
   const convertedEditor = (
-    <Card className="flex flex-col">
-      <CardHeader className="flex flex-row items-start">
-        <CardTitle className="text-lg font-medium flex-1 flex items-center gap-2">
-          <BsSlack />
-          Converted
-        </CardTitle>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={copyToClipboard} size="icon" variant="ghost">
-              {copied ? <Check /> : <Clipboard />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {copied ? "Copied!" : "Copy to clipboard"}
-          </TooltipContent>
-        </Tooltip>
-      </CardHeader>
-      <CardContent className="flex-1">
-        <CodeMirror
-          theme={editorTheme}
-          extensions={[
-            markdown({
-              base: markdownLanguage,
-              codeLanguages: languages,
-            }),
-            EditorView.lineWrapping,
-          ]}
-          value={convertedText}
-          onChange={setConvertedText}
-        />
-      </CardContent>
-    </Card>
+    <EditorCard>
+      <EditorHeader>
+        <BsSlack />
+        Converted
+      </EditorHeader>
+      <Editor value={convertedText} onChange={setConvertedText}>
+        <CopyButton getContent={() => convertedText} />
+      </Editor>
+    </EditorCard>
   );
 
   return (
