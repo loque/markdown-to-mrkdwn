@@ -31,6 +31,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { markdownToMrkdwn } from "./markdown-to-mrkdwn";
+import { BsMarkdown, BsSlack } from "react-icons/bs";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -40,45 +42,6 @@ export function meta({}: Route.MetaArgs) {
       content: "Convert regular markdown to Slack mrkdwn format",
     },
   ];
-}
-
-// Convert regular markdown to Slack mrkdwn format
-function convertToSlackMrkdwn(markdown: string): string {
-  let slackMrkdwn = markdown;
-
-  slackMrkdwn = slackMrkdwn.replace(/^###### (.*$)/gm, "_$1_");
-  slackMrkdwn = slackMrkdwn.replace(/^##### (.*$)/gm, "_$1_");
-  slackMrkdwn = slackMrkdwn.replace(/^#### (.*$)/gm, "_$1_");
-  slackMrkdwn = slackMrkdwn.replace(/^### (.*$)/gm, "_$1_");
-  slackMrkdwn = slackMrkdwn.replace(/^## (.*$)/gm, "_$1_");
-  slackMrkdwn = slackMrkdwn.replace(/^# (.*$)/gm, "_$1_");
-
-  // Bold - convert **text** to *text*
-  slackMrkdwn = slackMrkdwn.replace(/\*\*(.*?)\*\*/g, "*$1*");
-
-  // Italic - convert *text* to _text_
-  slackMrkdwn = slackMrkdwn.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "_$1_");
-
-  // Code blocks - convert \`\`\`code\`\`\` to \`\`\`code\`\`\`
-  slackMrkdwn = slackMrkdwn.replace(/```([\s\S]*?)```/g, "```$1```");
-
-  // Inline code - convert `code` to `code`
-  slackMrkdwn = slackMrkdwn.replace(/`([^`]+)`/g, "`$1`");
-
-  // Links - convert [text](url) to <url|text>
-  slackMrkdwn = slackMrkdwn.replace(/\[([^\]]+)\]$$([^)]+)$$/g, "<$2|$1>");
-
-  // Strikethrough - convert ~~text~~ to ~text~
-  slackMrkdwn = slackMrkdwn.replace(/~~(.*?)~~/g, "~$1~");
-
-  // Lists - convert - to •
-  slackMrkdwn = slackMrkdwn.replace(/^- (.*$)/gm, "• $1");
-  slackMrkdwn = slackMrkdwn.replace(/^\* (.*$)/gm, "• $1");
-
-  // Numbered lists - keep as is
-  slackMrkdwn = slackMrkdwn.replace(/^\d+\. (.*$)/gm, "$&");
-
-  return slackMrkdwn;
 }
 
 const placeholder = `Paste your markdown here...
@@ -93,8 +56,8 @@ Example:
 type Layout = "vertical" | "horizontal" | "tabbed";
 
 export default function MarkdownConverter() {
-  const [outputText, setOutputText] = useState(
-    convertToSlackMrkdwn(placeholder),
+  const [convertedText, setConvertedText] = useState(
+    markdownToMrkdwn(placeholder),
   );
   const [copied, setCopied] = useState(false);
   const { theme, themePreference, setThemePreference } = useTheme();
@@ -102,17 +65,13 @@ export default function MarkdownConverter() {
 
   const editorTheme = theme === "dark" ? xcodeDark : xcodeLight;
 
-  function handleMarkdownUpdate(text: string) {
-    setOutputText(convertToSlackMrkdwn(text));
-  }
-
-  function handleInputChange(text: string) {
-    handleMarkdownUpdate(text);
+  function onOriginalEditorChange(text: string) {
+    setConvertedText(markdownToMrkdwn(text));
   }
 
   async function copyToClipboard() {
     try {
-      await navigator.clipboard.writeText(outputText);
+      await navigator.clipboard.writeText(convertedText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -120,10 +79,13 @@ export default function MarkdownConverter() {
     }
   }
 
-  const inputArea = (
+  const originalEditor = (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Original</CardTitle>
+        <CardTitle className="text-lg font-medium flex items-center gap-2">
+          <BsMarkdown />
+          Original
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex-1">
         <CodeMirror
@@ -136,16 +98,17 @@ export default function MarkdownConverter() {
             EditorView.lineWrapping,
           ]}
           placeholder={placeholder}
-          onChange={handleInputChange}
+          onChange={onOriginalEditorChange}
         />
       </CardContent>
     </Card>
   );
 
-  const outputArea = (
+  const convertedEditor = (
     <Card className="flex flex-col">
       <CardHeader className="flex flex-row items-start">
-        <CardTitle className="text-lg font-semibold flex-1">
+        <CardTitle className="text-lg font-medium flex-1 flex items-center gap-2">
+          <BsSlack />
           Converted
         </CardTitle>
         <Tooltip>
@@ -169,8 +132,8 @@ export default function MarkdownConverter() {
             }),
             EditorView.lineWrapping,
           ]}
-          value={outputText}
-          onChange={setOutputText}
+          value={convertedText}
+          onChange={setConvertedText}
         />
       </CardContent>
     </Card>
@@ -242,8 +205,8 @@ export default function MarkdownConverter() {
       >
         {layout !== "tabbed" && (
           <>
-            {inputArea}
-            {outputArea}
+            {originalEditor}
+            {convertedEditor}
           </>
         )}
         {layout === "tabbed" && (
@@ -252,8 +215,8 @@ export default function MarkdownConverter() {
               <TabsTrigger value="original">Original</TabsTrigger>
               <TabsTrigger value="converted">Converted</TabsTrigger>
             </TabsList>
-            <TabsContent value="original">{inputArea}</TabsContent>
-            <TabsContent value="converted">{outputArea}</TabsContent>
+            <TabsContent value="original">{originalEditor}</TabsContent>
+            <TabsContent value="converted">{convertedEditor}</TabsContent>
           </Tabs>
         )}
       </div>
