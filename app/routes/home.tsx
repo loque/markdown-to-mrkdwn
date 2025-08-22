@@ -1,29 +1,12 @@
 import type { Route } from "./+types/home";
 import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuSection,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import {
-  Sun,
-  Moon,
-  Monitor,
-  Menu,
-  Columns2,
-  Rows2,
-  Square,
-} from "lucide-react";
-import { useTheme } from "~/components/theme-provider";
-import { RadioCardGroup, RadioCardItem } from "~/components/ui/radio-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { markdownToMrkdwn } from "./markdown-to-mrkdwn";
 import { BsMarkdown, BsSlack } from "react-icons/bs";
 import { Editor, EditorCard, EditorHeader } from "~/components/editor";
 import { CopyButton } from "~/components/copy-button";
+import { AppMenu } from "~/components/app-menu/app-menu";
+import { useLayout } from "~/components/layout-provider";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -44,15 +27,12 @@ Example:
 *Italic text*
 \`inline code\``;
 
-type Layout = "vertical" | "horizontal" | "tabbed";
-
 export default function MarkdownConverter() {
   const [originalText, setOriginalText] = useState(placeholder);
   const [convertedText, setConvertedText] = useState(
     markdownToMrkdwn(originalText),
   );
-  const { themePreference, setThemePreference } = useTheme();
-  const [layout, setLayout] = useState<Layout>("horizontal");
+  const { layout } = useLayout();
 
   function onOriginalTextChange(text: string) {
     setOriginalText(text);
@@ -84,51 +64,7 @@ export default function MarkdownConverter() {
   return (
     <div className="min-h-screen bg-background p-4 flex flex-col">
       <div className="absolute top-4 right-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Menu />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuSection>
-              <RadioCardGroup value={layout} onValueChange={setLayout}>
-                <RadioCardItem value="horizontal">
-                  <Columns2 />
-                  Horizontal
-                </RadioCardItem>
-                <RadioCardItem value="vertical">
-                  <Rows2 />
-                  Vertical
-                </RadioCardItem>
-                <RadioCardItem value="tabbed">
-                  <Square />
-                  Tabbed
-                </RadioCardItem>
-              </RadioCardGroup>
-            </DropdownMenuSection>
-            <DropdownMenuSection>
-              <RadioCardGroup
-                value={themePreference}
-                onValueChange={setThemePreference}
-              >
-                <RadioCardItem value="light">
-                  <Sun />
-                  Light
-                </RadioCardItem>
-                <RadioCardItem value="dark">
-                  <Moon />
-                  Dark
-                </RadioCardItem>
-                <RadioCardItem value="system">
-                  <Monitor />
-                  System
-                </RadioCardItem>
-              </RadioCardGroup>
-            </DropdownMenuSection>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <AppMenu />
       </div>
 
       <header className="mb-8 text-center">
