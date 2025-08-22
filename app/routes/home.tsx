@@ -1,21 +1,36 @@
 import type { Route } from "./+types/home";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSection,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { Copy, Check, Sun, Moon, Monitor, Radio, Menu } from "lucide-react";
+import {
+  Clipboard,
+  Check,
+  Sun,
+  Moon,
+  Monitor,
+  Menu,
+  Columns2,
+  Rows2,
+  Square,
+} from "lucide-react";
 import { useTheme } from "~/components/theme-provider";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { xcodeDark, xcodeLight } from "@uiw/codemirror-theme-xcode";
 import { RadioCardGroup, RadioCardItem } from "~/components/ui/radio-card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -75,12 +90,15 @@ Example:
 *Italic text*
 \`inline code\``;
 
+type Layout = "vertical" | "horizontal" | "tabbed";
+
 export default function MarkdownConverter() {
   const [outputText, setOutputText] = useState(
     convertToSlackMrkdwn(placeholder),
   );
   const [copied, setCopied] = useState(false);
   const { theme, themePreference, setThemePreference } = useTheme();
+  const [layout, setLayout] = useState<Layout>("horizontal");
 
   const editorTheme = theme === "dark" ? xcodeDark : xcodeLight;
 
@@ -102,6 +120,62 @@ export default function MarkdownConverter() {
     }
   }
 
+  const inputArea = (
+    <Card className="flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">Original</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <CodeMirror
+          theme={editorTheme}
+          extensions={[
+            markdown({
+              base: markdownLanguage,
+              codeLanguages: languages,
+            }),
+            EditorView.lineWrapping,
+          ]}
+          placeholder={placeholder}
+          onChange={handleInputChange}
+        />
+      </CardContent>
+    </Card>
+  );
+
+  const outputArea = (
+    <Card className="flex flex-col">
+      <CardHeader className="flex flex-row items-start">
+        <CardTitle className="text-lg font-semibold flex-1">
+          Converted
+        </CardTitle>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button onClick={copyToClipboard} size="icon" variant="ghost">
+              {copied ? <Check /> : <Clipboard />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {copied ? "Copied!" : "Copy to clipboard"}
+          </TooltipContent>
+        </Tooltip>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <CodeMirror
+          theme={editorTheme}
+          extensions={[
+            markdown({
+              base: markdownLanguage,
+              codeLanguages: languages,
+            }),
+            EditorView.lineWrapping,
+          ]}
+          value={outputText}
+          onChange={setOutputText}
+        />
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background p-4 flex flex-col">
       <div className="absolute top-4 right-4">
@@ -113,6 +187,22 @@ export default function MarkdownConverter() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuSection>
+              <RadioCardGroup value={layout} onValueChange={setLayout}>
+                <RadioCardItem value="horizontal">
+                  <Columns2 />
+                  Horizontal
+                </RadioCardItem>
+                <RadioCardItem value="vertical">
+                  <Rows2 />
+                  Vertical
+                </RadioCardItem>
+                <RadioCardItem value="tabbed">
+                  <Square />
+                  Tabbed
+                </RadioCardItem>
+              </RadioCardGroup>
+            </DropdownMenuSection>
             <DropdownMenuSection>
               <RadioCardGroup
                 value={themePreference}
@@ -146,56 +236,26 @@ export default function MarkdownConverter() {
         </p>
       </header>
 
-      <div className="flex-1 grid grid-cols-2 gap-4">
-        {/* Input Section */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">
-              Regular Markdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <CodeMirror
-              theme={editorTheme}
-              extensions={[
-                markdown({
-                  base: markdownLanguage,
-                  codeLanguages: languages,
-                }),
-                EditorView.lineWrapping,
-              ]}
-              placeholder={placeholder}
-              onChange={handleInputChange}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Output Section */}
-        <Card className="flex flex-col">
-          <CardHeader className="flex flex-row items-start">
-            <CardTitle className="text-lg font-semibold flex-1">
-              Slack Markdown
-            </CardTitle>
-            <Button onClick={copyToClipboard}>
-              {copied ? <Check /> : <Copy />}
-              {copied ? "Copied!" : "Copy"}
-            </Button>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <CodeMirror
-              theme={editorTheme}
-              extensions={[
-                markdown({
-                  base: markdownLanguage,
-                  codeLanguages: languages,
-                }),
-                EditorView.lineWrapping,
-              ]}
-              value={outputText}
-              onChange={setOutputText}
-            />
-          </CardContent>
-        </Card>
+      <div
+        data-layout={layout}
+        className="flex-1 grid gap-4 data-[layout=vertical]:grid-cols-1 data-[layout=horizontal]:grid-cols-2 data-[layout=tabbed]:grid-cols-1"
+      >
+        {layout !== "tabbed" && (
+          <>
+            {inputArea}
+            {outputArea}
+          </>
+        )}
+        {layout === "tabbed" && (
+          <Tabs defaultValue="original">
+            <TabsList>
+              <TabsTrigger value="original">Original</TabsTrigger>
+              <TabsTrigger value="converted">Converted</TabsTrigger>
+            </TabsList>
+            <TabsContent value="original">{inputArea}</TabsContent>
+            <TabsContent value="converted">{outputArea}</TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

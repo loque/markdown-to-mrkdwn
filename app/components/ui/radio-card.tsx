@@ -1,14 +1,24 @@
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { cn } from "~/lib/utils";
 
-export function RadioCardGroup({
+export function RadioCardGroup<T extends string>({
   className,
+  value,
+  onValueChange,
   ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
+}: Omit<
+  React.ComponentProps<typeof RadioGroupPrimitive.Root>,
+  "value" | "onValueChange"
+> & {
+  value?: T;
+  onValueChange?: (value: T) => void;
+}) {
   return (
     <RadioGroupPrimitive.Root
       data-slot="radio-card-group"
       className={cn("max-w-sm w-full grid grid-cols-3 gap-3", className)}
+      value={value}
+      onValueChange={onValueChange}
       {...props}
     />
   );
