@@ -52,6 +52,10 @@ export function Editor({
     <CardContent className={cn("flex-1 relative", className)} {...props}>
       <CodeMirror
         theme={editorTheme}
+        basicSetup={{
+          lineNumbers: false,
+          foldGutter: false,
+        }}
         extensions={[
           markdown({
             base: markdownLanguage,
