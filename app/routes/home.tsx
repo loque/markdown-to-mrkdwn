@@ -7,6 +7,7 @@ import { Editor, EditorCard, EditorHeader } from "~/components/editor";
 import { CopyButton } from "~/components/copy-button";
 import { AppMenu } from "~/components/app-menu/app-menu";
 import { useLayout } from "~/components/layout-provider";
+import { useSessionStorage } from "~/lib/use-session-storage";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -28,8 +29,12 @@ Example:
 \`inline code\``;
 
 export default function MarkdownConverter() {
-  const [originalText, setOriginalText] = useState(placeholder);
-  const [convertedText, setConvertedText] = useState(
+  const [originalText, setOriginalText] = useSessionStorage<string>(
+    "originalText",
+    placeholder,
+  );
+  const [convertedText, setConvertedText] = useSessionStorage<string>(
+    "convertedText",
     markdownToMrkdwn(originalText),
   );
   const { layout } = useLayout();

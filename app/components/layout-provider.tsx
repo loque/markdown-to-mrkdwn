@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useSessionStorage } from "~/lib/use-session-storage";
 
 type Layout = "vertical" | "horizontal" | "tabbed";
 
@@ -25,10 +26,7 @@ export function LayoutProvider({
   children,
   storageKey = "ui-layout",
 }: LayoutProviderProps) {
-  const [layout, setLayout] = useState((): Layout => {
-    const storedLayout = sessionStorage.getItem(storageKey) as Layout;
-    return storedLayout ?? defaultLayout;
-  });
+  const [layout, setLayout] = useSessionStorage(storageKey, defaultLayout);
 
   function persistLayout(layout: Layout) {
     sessionStorage.setItem(storageKey, layout);

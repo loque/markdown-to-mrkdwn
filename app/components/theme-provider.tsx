@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useLocalStorage } from "~/lib/use-local-storage";
 
 type ThemePreference = "dark" | "light" | "system";
 type Theme = "dark" | "light";
@@ -35,12 +36,9 @@ export function ThemeProvider({
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
-  // On initial load, read the preferred theme from localStorage
-  const [themePreference, setThemePreference] = useState<ThemePreference>(
-    () =>
-      (localStorage.getItem(storageKey) as ThemePreference) ||
-      defaultThemePreference,
-  );
+  // On initial load, read the stored theme preference
+  const [themePreference, setThemePreference] =
+    useLocalStorage<ThemePreference>(storageKey, defaultThemePreference);
 
   // On initial load, determine the theme based on the preference
   const [theme, setTheme] = useState<Theme>((): Theme => {
@@ -85,10 +83,7 @@ export function ThemeProvider({
   const value = {
     theme,
     themePreference,
-    setThemePreference: (themePreference: ThemePreference) => {
-      localStorage.setItem(storageKey, themePreference);
-      setThemePreference(themePreference);
-    },
+    setThemePreference,
   };
 
   return (
