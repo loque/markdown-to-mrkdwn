@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, use, useContext, useEffect, useState } from "react";
+import { useIsMobile } from "~/lib/use-is-mobile";
 import { useSessionStorage } from "~/lib/use-session-storage";
 
 type Layout = "vertical" | "horizontal" | "tabbed";
 
 type LayoutProviderProps = {
-  defaultLayout?: Layout;
   children: React.ReactNode;
   storageKey?: string;
 };
@@ -22,11 +22,13 @@ const initialState: LayoutProviderState = {
 const LayoutContext = createContext<LayoutProviderState>(initialState);
 
 export function LayoutProvider({
-  defaultLayout = "horizontal",
   children,
   storageKey = "ui-layout",
 }: LayoutProviderProps) {
-  const [layout, setLayout] = useSessionStorage(storageKey, defaultLayout);
+  const isMobile = useIsMobile();
+  const initialLayout = isMobile ? "tabbed" : "horizontal";
+  console.debug(">>> initialLayout", initialLayout);
+  const [layout, setLayout] = useSessionStorage(storageKey, initialLayout);
 
   function persistLayout(layout: Layout) {
     sessionStorage.setItem(storageKey, layout);
